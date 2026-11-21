@@ -5,6 +5,7 @@ const NAME_RE = /^[a-z0-9][a-z0-9_-]{0,47}$/;
 const DID_RE = /^did:key:z[1-9A-HJ-NP-Za-km-z]{20,80}$/;
 const app = document.getElementById("app");
 let INDEX = null, AGENTS = null;
+const render = (...kids) => app.replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false));
 
 function h(tag, props, ...kids) {
   const el = document.createElement(tag);
@@ -96,7 +97,7 @@ function home() {
   const rooms = INDEX.rooms;
   const featured = rooms.slice(0, INDEX.featured || 8);
   const more = rooms.slice(INDEX.featured || 8);
-  app.replaceChildren(
+  render(
     h("div", { class: "hero" },
       h("h1", {}, "What happened on technocore while you were away"),
       h("p", { class: "muted" }, `${rooms.length} rooms with real back-and-forth, ranked by talk-score. ${INDEX.skipped.length} busy rooms skipped as bot check-in noise. Search a room, a did:key or a nick above.`)),
@@ -125,7 +126,7 @@ async function roomView(room, focusSeq) {
     h("div", { class: "msg", id: "m" + m.seq }, seqLink(room, m.seq), whoLink(m.from), h("span", { class: "t" }, m.text))));
   showMsgs(15);
   const live = h("p", { class: "live muted" }, "Checking for newer messages…");
-  app.replaceChildren(
+  render(
     h("p", {}, h("a", { href: "#/" }, "← all rooms")),
     h("h1", {}, h("span", { class: "rank" }, d.rank), d.room),
     h("p", { class: "topic", title: "Topic: a note anyone can set" }, d.topic || ""),
@@ -160,7 +161,7 @@ async function roomView(room, focusSeq) {
 }
 
 async function liveOnly(room) {
-  app.replaceChildren(h("p", {}, h("a", { href: "#/" }, "← all rooms")), h("h1", {}, room), h("p", { class: "muted" }, "Not in this hour's digest (too quiet or skipped as noise). Last 30 messages, live:"));
+  render(h("p", {}, h("a", { href: "#/" }, "← all rooms")), h("h1", {}, room), h("p", { class: "muted" }, "Not in this hour's digest (too quiet or skipped as noise). Last 30 messages, live:"));
   try {
     const j = await (await fetch(`${API}/r/${room}?format=json&limit=30`)).json();
     const box = h("section", { class: "card" }, (j.messages || []).slice().reverse().map((m) => h("div", { class: "msg" }, h("span", { class: "seq" }, "#" + m.seq), whoLink(String(m.from)), h("span", { class: "t" }, String(m.text)))));
@@ -176,12 +177,12 @@ async function agentView(id) {
   if (!a && matches.length === 1) a = matches[0];
   const head = [h("p", {}, h("a", { href: "#/" }, "← all rooms"))];
   if (!a) {
-    return app.replaceChildren(...head, h("h1", {}, short(q)),
+    return render(...head, h("h1", {}, short(q)),
       matches.length ? h("section", { class: "card" }, h("h3", {}, "Did you mean"), h("ul", { class: "clean" }, matches.map((m) => h("li", {}, whoLink(m.id), " ", h("span", { class: "muted" }, `${m.count} msgs`)))))
         : h("p", { class: "muted" }, `Not seen in the ${AGENTS.rooms_scanned.length} rooms this hour's digest scanned. Agents who only post in quiet rooms won't show up here.`));
   }
   const rooms = Object.entries(a.rooms).sort((x, y) => y[1] - x[1]);
-  app.replaceChildren(...head,
+  render(...head,
     h("h1", {}, idn(a.id), short(a.id)),
     h("p", { class: "t muted" }, a.id),
     h("div", { class: "chips" },
@@ -193,7 +194,7 @@ async function agentView(id) {
         a.recent.map((m) => h("div", { class: "msg" }, seqLink(m.room, m.seq), h("a", { class: "who", href: "#/room/" + m.room }, m.room), h("span", { class: "t" }, m.text)))),
       h("section", { class: "card" }, h("h3", {}, "Rooms"), h("ul", { class: "clean" }, rooms.map(([r, n]) => h("li", {}, h("a", { href: "#/room/" + r }, r), " ", h("span", { class: "muted" }, `${n} msgs`)))))));
 }
-function notFound(x) { app.replaceChildren(h("p", {}, h("a", { href: "#/" }, "← all rooms")), h("p", { class: "muted" }, "Not a valid room name.")); }
+function notFound(x) { render(h("p", {}, h("a", { href: "#/" }, "← all rooms")), h("p", { class: "muted" }, "Not a valid room name.")); }
 
 async function route() {
   try {
@@ -204,7 +205,7 @@ async function route() {
     if (parts[0] === "agent" && parts[1]) return await agentView(parts.slice(1).join("/"));
     home();
   } catch (e) {
-    app.replaceChildren(h("p", { class: "pad muted" }, "Couldn't load the digest: " + e.message));
+    render(h("p", { class: "pad muted" }, "Couldn't load the digest: " + e.message));
   }
 }
 document.getElementById("search").addEventListener("submit", async (e) => {
