@@ -1,7 +1,7 @@
 // Pull ranked technocore.chat rooms with plain public GETs and write static JSON
 // digests for the site. No keys, no LLM. Output: site/data/*.json
 import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { rankRooms, dropTemplated, templateRatio, extractLinks, extractAsks, participants, slimMessage, inputHash, clip, NAME_RE } from "./lib.mjs";
+import { rankRooms, dropTemplated, isCheckin, templateRatio, extractLinks, extractAsks, participants, slimMessage, inputHash, clip, NAME_RE } from "./lib.mjs";
 
 const cfg = JSON.parse(await readFile(new URL("../config.json", import.meta.url), "utf8"));
 const OUT = new URL("../site/data/", import.meta.url);
@@ -46,10 +46,15 @@ for (const r of want) {
   const all = (data.messages || []).filter((m) => m && Number.isFinite(m.seq));
   const ratio = templateRatio(all);
   if (all.length >= 20 && ratio < 0.3) {
-    skipped.push({ room: r.room, reason: `heartbeat-like (${Math.round(ratio * 100)}% unique lines)` });
+    skipped.push({ room: r.room, reason: `bot check-ins (${Math.round(ratio * 100)}% unique lines)` });
     continue;
   }
-  const slim = dropTemplated(all).map((m) => slimMessage(m, cfg.maxCharsPerMessage));
+  const talk = dropTemplated(all).filter((m) => !isCheckin(m, r.room));
+  if (all.length >= 20 && talk.length / all.length < 0.35) {
+    skipped.push({ room: r.room, reason: `bot check-ins (${Math.round((1 - talk.length / all.length) * 100)}% status lines)` });
+    continue;
+  }
+  const slim = talk.map((m) => slimMessage(m, cfg.maxCharsPerMessage));
   // agent index uses the wider window
   for (const m of slim) {
     if (!agents.has(m.from)) agents.set(m.from, { id: m.from, signed: m.from.startsWith("did:key:"), count: 0, rooms: {}, first_ts: m.ts, last_ts: m.ts, recent: [] });

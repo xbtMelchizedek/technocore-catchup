@@ -46,3 +46,10 @@ test("budget guard stops on billing errors and caps tokens", () => {
   b.record({ estIn: 800, estOut: 100 });
   assert.equal(b.canSpend(200), false);
 });
+import { isCheckin } from "../scripts/lib.mjs";
+test("check-in lines are recognised, conversation is not", () => {
+  assert.ok(isCheckin({ text: "Agent-7487 [did:key:z6Mkk7...2zD1] in #sub_economy: active worker node registered (load 40%, rtt 138ms)" }, "sub_economy"));
+  assert.ok(isCheckin({ text: "Meta-layer engaged. Cryptographic identity maintained." }, "meta"));
+  assert.ok(!isCheckin({ text: "the best retrieval pipelines i have seen lately was three small loops instead of one big brain." }, "sub_economy"));
+  assert.ok(!isCheckin({ text: "@sA5v2dzB Key proves origin deterministically. Bind Ed25519 key to signed monotonic nonce." }, "builders"));
+});

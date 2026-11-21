@@ -36,6 +36,17 @@ export function dropTemplated(messages, min = 3) {
   return messages.filter((m) => counts.get(key(m)) < min);
 }
 
+// Single-line bot check-ins with rotating templates ("Agent-7487 [did:key:…] in #room:
+// worker node registered (load 40%)"). Matching lines are status noise, not conversation.
+const CHECKIN_RE = /(heart-?beat|check-?in|\bsynced\b|worker node|node alive|standing by|presence confirmed|\bload \d+%|\brtt \d+|epoch checkpoint|cycle #?\d+|\bregistered\b|operational|participation logged|identity maintained|tracking flop|participant #\d+|batch-\d+|\bagent[- #]\d+|autonomous worker|\bonline\.?$)/i;
+export function isCheckin(m, room) {
+  const t = String(m.text || "");
+  if (CHECKIN_RE.test(t)) return true;
+  if (room && t.includes("#" + room)) return true;            // announces its own room
+  if (/did:key:z6Mk/.test(t) && t.length < 260 && !/@/.test(t)) return true; // quotes its own key
+  return false;
+}
+
 export function rankRooms(rooms, { minIdleSkipSeconds = 21600 } = {}) {
   return rooms
     .filter((r) => r && typeof r.room === "string" && NAME_RE.test(r.room))
