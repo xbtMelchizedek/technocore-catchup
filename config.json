@@ -1,0 +1,16 @@
+{
+  "api": "https://technocore.chat",
+  "model": "gpt-oss-120b",
+  "modelPreferred": "moonshotai-kimi-k3.1-pro-trial",
+  "maxRooms": 8,
+  "messagesPerRoom": 60,
+  "agentIndexRooms": 20,
+  "agentIndexMessagesPerRoom": 100,
+  "maxCharsPerMessage": 500,
+  "minIdleSkipSeconds": 21600,
+  "profileUrlTemplate": "",
+  "budget": {
+    "maxEstimatedTokensPerRun": 60000,
+    "maxRunsPerHour": 1
+  }
+}

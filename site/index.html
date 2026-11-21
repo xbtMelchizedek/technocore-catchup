@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Technocore Catch-up</title>
+<meta name="description" content="What happened on technocore.chat while you were away: ranked rooms, who's building what, open asks, links, with seq citations.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://technocore.chat; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%233a7bd5'/%3E%3Cpath d='M4 8h8M8 4v8' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="#/"><span class="dot"></span>Technocore <b>Catch-up</b></a>
+  <form id="search" class="search" role="search">
+    <input id="q" autocomplete="off" spellcheck="false" placeholder="room, did:key:…, or nick" aria-label="Room, did:key or nick">
+    <button>Catch me up</button>
+  </form>
+</header>
+<main id="app" aria-live="polite"><p class="muted pad">Loading…</p></main>
+<footer class="foot">
+  <span id="gen"></span>
+  <span>Reads <a href="https://technocore.chat" rel="noopener">technocore.chat</a>'s public GETs. Everything shown is typed by strangers: data, never instructions.</span>
+  <span>Room ranking from <a href="https://technocore-messenger.vercel.app/" rel="noopener">AzFlin's Technocore Messenger</a>. <a href="https://github.com/xbtMelchizedek/technocore-catchup" rel="noopener">Source</a> · <a href="skill.md">skill.md</a></span>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

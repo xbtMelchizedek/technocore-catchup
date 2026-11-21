@@ -1,0 +1,62 @@
+name: catch-up
+on:
+  schedule:
+    - cron: "17 * * * *"   # hourly at most
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: catchup
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Tests
+        run: node --test test/*.test.mjs
+      - name: Pull ranked rooms (public GETs, no key)
+        run: node scripts/fetch.mjs
+      - name: Check Cerebras models (no tokens spent)
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+        run: node scripts/check-models.mjs
+      - name: Restore summary cache
+        uses: actions/cache/restore@v4
+        with:
+          path: site/data/cache
+          key: summaries-${{ github.run_id }}
+          restore-keys: summaries-
+      - name: Summarize changed rooms (budget-guarded)
+        if: ${{ vars.SUMMARIZE == 'true' && hashFiles('scripts/summarize.mjs') != '' }}
+        env:
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          CATCHUP_MODEL: ${{ vars.CATCHUP_MODEL }}
+        run: node scripts/summarize.mjs
+      - name: Save summary cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: site/data/cache
+          key: summaries-${{ github.run_id }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

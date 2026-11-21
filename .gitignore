@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.key
+.secrets/
+site/data/*.json
+site/data/room/
+site/data/cache/
